@@ -392,7 +392,10 @@ after_script: rake ci_teardown_cache
 branch: {name: Web-CI, active: yes}
 language: cpp
 compiler: gcc
-cache: ccache
+cache:
+  ccache: true
+  directories:
+    - $HOME/.emscripten_cache/asmjs
 sudo: false
 addons: {apt: {sources: [george-edison55-precise-backports, kubuntu-backports, ubuntu-toolchain-r-test], packages: [cmake, doxygen, graphviz, g++-4.9]}}
 env:
