@@ -26,11 +26,14 @@
 
 #include "../DebugNew.h"
 
+#include "../C/CRuntimeEnvironment.h"
+
 namespace Urho3D
 {
 
 RefCounted::RefCounted() :
-    refCount_(new RefCount())
+    refCount_(new RefCount()),
+	instanceWrapper_(0)
 {
     // Hold a weak ref to self to avoid possible double delete of the refcount
     (refCount_->weakRefs_)++;
@@ -54,6 +57,13 @@ RefCounted::~RefCounted()
 void RefCounted::AddRef()
 {
     assert(refCount_->refs_ >= 0);
+
+    if (!refCount_->refs_ && instanceWrapper_) {
+
+        // notify to allow to keep the wrapper alive while this object has strong references
+		CRuntimeEnvironment::GetInterface().RefCountedRetained(instanceWrapper_);
+	}
+
     (refCount_->refs_)++;
 }
 
@@ -61,8 +71,18 @@ void RefCounted::ReleaseRef()
 {
     assert(refCount_->refs_ > 0);
     (refCount_->refs_)--;
-    if (!refCount_->refs_)
-        delete this;
+
+    if (!refCount_->refs_) {
+
+        if (instanceWrapper_) {
+
+            // may cause destruction or just leave it with zero references
+            CRuntimeEnvironment::GetInterface().RefCountedDropped(instanceWrapper_);
+
+        } else {
+            delete this;
+        }
+    }
 }
 
 int RefCounted::Refs() const

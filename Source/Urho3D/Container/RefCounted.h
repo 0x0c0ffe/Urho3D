@@ -58,7 +58,10 @@ struct RefCount
 /// Base class for intrusively reference-counted objects. These are noncopyable and non-assignable.
 class URHO3D_API RefCounted
 {
+    friend class CRuntimeEnvironment;
+
 public:
+
     /// Construct. Allocate the reference count structure and set an initial self weak reference.
     RefCounted();
     /// Destruct. Mark as expired and also delete the reference count structure if no outside weak references exist.
@@ -84,6 +87,9 @@ private:
 
     /// Pointer to the reference count structure.
     RefCount* refCount_;
+
+    /// Opaque pointer to external representation of this object (used by the C API).
+    void* instanceWrapper_;
 };
 
 }
